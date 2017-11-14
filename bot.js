@@ -1,5 +1,8 @@
 var services = require('node-bittrex-api');
 const TelegramBot = require('node-telegram-bot-api');
+const token = require('./config');
+const bot = new TelegramBot(token.key, {polling: true});
+
 //var services = require('./services.js');
 var mongoose = require('mongoose');
 var schemaUser = require('./user');
@@ -15,10 +18,6 @@ var store = [];
 // var buyInterval = [];
 // var sellInterval = [];
 var bsInterval = [];
-
-//Token bot telegram
-const token = 'xxx';
-const bot = new TelegramBot(token, {polling: true});
 
 const msgStart = `💡 Cấu trúc lệnh thực thi
 Cú pháp : #buy,LTC,0.15,1000
@@ -86,7 +85,8 @@ function buy(type_BTC,bid,i,senderId){
 		if(amout_quere[i] > 0.5){
 			services.getticker( { market : "USDT-BTC" }, function( data, err ){
 				curBtc = data.result.Last;
-				var bitBtc = bid/curBtc;
+				//var bitBtc = bid/curBtc;
+				var bitBtc = bid;
 				services.getorderbook({ market : type_BTC, depth : 0, type : 'sell' }, function( data, err ) {
 					
 					if(data != null){
@@ -312,7 +312,7 @@ function getBalanceFull(senderId, data_api)
       return;      
     }else{
 	  var result = data.result;
-	  //console.log(result);
+	  console.log(data);
       var mang_Balance = {};
       var message_chinh = "======================\n💎 All Balance Account 💎\n======================\n";
       for(dem1 = 0 ; dem1 < result.length; dem1++)
@@ -365,7 +365,11 @@ function getBalanceFull(senderId, data_api)
           }          
         }
 
-      }
+	  }
+	  if (result.length === 0)
+	  {
+		message_chinh += "Tài khoản chưa có coin nào.";
+	  }
       console.log(mang_Balance);
       bot.sendMessage(senderId,message_chinh);
       return;
@@ -403,23 +407,23 @@ function APICALL(API_KEY, API_SECRET)
 }
 
 var checkConnect = function(chatId,callback){
-	// mongoose.connect(url, {useMongoClient: true});
-	// var db = mongoose.connection;
-	// db.on('error', console.error);
-	// var userColl = mongoose.model('userColl', schemaUser, 'User');
-	// db.once('open', function () {
-	// 	console.log("Vao lenh checkConnect !");
-	// 	userColl.findOne({ ID: chatId }, function(err, data) {			
-	// 		if (err) return console.log("Loi roi " + err);
-	// 		console.log(data.ID);
-	// 		if (data.length === 0){
-	// 			console.log('Ban chua dang ky !');
-	// 		}else
-	// 		{
-	// 			callback(data);
-	// 		}
-	// 	});
-	// });
+	mongoose.connect(url, {useMongoClient: true});
+	var db = mongoose.connection;
+	db.on('error', console.error);
+	var userColl = mongoose.model('userColl', schemaUser, 'User');
+	db.once('open', function () {
+		console.log("Vao lenh checkConnect !");
+		userColl.findOne({ ID: chatId }, function(err, data) {			
+			if (err) return console.log("Loi roi " + err);
+			console.log(data.ID);
+			if (data.length === 0){
+				console.log('Ban chua dang ky !');
+			}else
+			{
+				callback(data);
+			}
+		});
+	});
 }
 
 bot.on('message', (msg) => {
@@ -455,8 +459,9 @@ bot.on('message', (msg) => {
 			db.once('open', function () {
 				var userColl = mongoose.model('userColl', schemaUser, 'User');
 				userColl.create({ID: ID, ApiKey: apiKey, ApiSecret: apiSecret, Wallet: 0}, {versionKey: false});
+				msgDangKy = 'Ban da dang ky thanh cong voi ID ' + ID;
 			});
-			msgDangKy = 'Ban da dang ky thanh cong voi ID ' + ID;			
+					
 		}
 		else{
 			msgDangKy = 'Sai cu phap, vui long thu lai !'
