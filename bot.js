@@ -17,7 +17,7 @@ var store = [];
 var bsInterval = [];
 
 //Token bot telegram
-const token = '456562643:AAGF_5ChgmOJldltkRSjtrjlpATfGSI3GAI';
+const token = 'xxx';
 const bot = new TelegramBot(token, {polling: true});
 
 const msgStart = `💡 Cấu trúc lệnh thực thi
