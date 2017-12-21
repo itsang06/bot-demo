@@ -1,10 +1,19 @@
 module.exports = {
-    convertCoin: function (coincode){
-        var marketcoincode = "BTC-" + coincode;        
-        if (coincode === 'BTC'){
-            marketcoincode = 'USDT-BTC';
+    convertCoin: function (coincode, type_market){
+        var marketcoincode = "";
+        if (type_market === 'BTC'){
+            marketcoincode = "BTC-" + coincode;        
+            if (coincode === 'BTC'){
+                marketcoincode = 'USDT-BTC';
+            }
         }
-        return marketcoincode.toUpperCase();
+        if (type_market === 'USDT'){
+            marketcoincode = "USDT-" + coincode;        
+            if (coincode === 'BTC'){
+                marketcoincode = 'USDT-BTC';
+            }
+        }
+        return marketcoincode;
     },
     getInfo: function (senderId, data_api){
         var message = "✅ Hi " + data_api.Name + "\n";
